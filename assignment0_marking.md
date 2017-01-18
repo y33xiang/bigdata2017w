@@ -9,7 +9,7 @@ WATIAM:Y33XIANG
 github:y33xiang
 
 **Question 1**
-mark:1/2
+mark:2/2
 
 **Question 2**
 mark:2/2
@@ -21,7 +21,7 @@ mark:2/2
 mark:2/2
 
 **Question 5**
-mark:2/2
+mark:1/2
 
 **Test 1:** Does your code run on linux.student?
 mark:4/4
@@ -34,7 +34,6 @@ mark:2/2
 
 **Deductions:**
 
--1 Q1, answer is not exact, but close
 -1 Q5, answer is not exact, but close(did you reset prev=perfect every line?)
 **Final grade:**
 

@@ -55,7 +55,7 @@ class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
 
     val lines = textFile.count()
     val countWord = textFile
-    .flatMap(line => tokenize(line))
+    .flatMap(line => tokenize(line).distinct)
     .map(word => (word, 1))
     .reduceByKey(_ + _)
     .map(word2 => (word2,lines))
@@ -70,7 +70,7 @@ class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
  tokens.map(y=>{if(x!=y) (x,y) else None})).filter(_!=None) else List()
  }}})*/
 
-    if (tokens.length > 1) tokens.flatMap(x =>
+    if (tokens.length > 1) tokens.take(40).flatMap(x =>
 
     tokens.map((x, _))) else List()
 
@@ -83,14 +83,10 @@ class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
     .join(countWord)
     .map(pair => (pair._2._1._1,((pair._1,pair._2._1._2),pair._2._2)))
     .join(countWord)
- //   .map(pair=>((pair._2._1._1._1,pair._1),(scala.math.log10(((pair._2._1._1._2).toDouble*(pair._2._1._2._2).toDouble)/((pair._2._1._2._1).toDouble*(pair._2._2._1).toDouble)))))
     .map(pair=>((pair._2._1._1._1,(((pair._1),(scala.math.log10(((pair._2._1._1._2).toDouble*(pair._2._1._2._2).toDouble)/((pair._2._1._2._1).toDouble*(pair._2._2._1).toDouble)),pair._2._1._2._2))))))
     .groupByKey()
     countPair.saveAsTextFile(args.output())
  //   .map{ something => a._1={a._2._1 = a._2._2} }.saveAsTextFile(args.output())
     }
 }
-
-
-
 

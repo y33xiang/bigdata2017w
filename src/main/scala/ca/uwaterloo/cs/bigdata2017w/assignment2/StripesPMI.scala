@@ -27,9 +27,10 @@ import org.rogach.scallop._
 
 
 class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
-    mainOptions = Seq(input, output, reducers)
+    mainOptions = Seq(input, output, threshold,reducers)
     val input = opt[String](descr = "input path", required = true)
     val output = opt[String](descr = "output path", required = true)
+    val threshold = opt[Int](descr = "threshold number", required = true, default = Some(1))
     val reducers = opt[Int](descr = "number of reducers", required = false, default = Some(1))
     verify()
 }
@@ -43,9 +44,10 @@ class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
     log.info("Input: " + args.input())
     log.info("Output: " + args.output())
     log.info("Number of reducers: " + args.reducers())
-
+     log.info("Threshold: " + args.threshold())
     val conf = new SparkConf().setAppName("Bigram Count")
     val sc = new SparkContext(conf)
+    val threshold = args.threshold()    
 
     val outputDir = new Path(args.output())
     FileSystem.get(sc.hadoopConfiguration).delete(outputDir, true)
@@ -72,18 +74,19 @@ class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
 
     if (tokens.length > 1) tokens.take(40).flatMap(x =>
 
-    tokens.map((x, _))) else List()
+    tokens.map((x, _))).distinct.filter(a =>(a._1!=a._2)) else List()
 
     })
 
-    .filter(a =>(a._1!=a._2))
+  //  .filter(a =>(a._1!=a._2))
     .map(bigram => (bigram, 1))
     .reduceByKey(_ + _)
+    .filter(a => (a._2 >= threshold))
     .map(pair => ((pair._1._1),((pair._1._2),pair._2)))
     .join(countWord)
     .map(pair => (pair._2._1._1,((pair._1,pair._2._1._2),pair._2._2)))
     .join(countWord)
-    .map(pair=>((pair._2._1._1._1,(((pair._1),(scala.math.log10(((pair._2._1._1._2).toDouble*(pair._2._1._2._2).toDouble)/((pair._2._1._2._1).toDouble*(pair._2._2._1).toDouble)),pair._2._1._2._2))))))
+    .map(pair=>((pair._2._1._1._1,(((pair._1),(scala.math.log10(((pair._2._1._1._2).toDouble*(pair._2._1._2._2).toDouble)/((pair._2._1._2._1).toDouble*(pair._2._2._1).toDouble)),pair._2._1._1._2))))))
     .groupByKey()
     countPair.saveAsTextFile(args.output())
  //   .map{ something => a._1={a._2._1 = a._2._2} }.saveAsTextFile(args.output())

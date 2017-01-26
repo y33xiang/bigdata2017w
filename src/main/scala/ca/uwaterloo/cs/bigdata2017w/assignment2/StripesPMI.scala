@@ -26,7 +26,7 @@ import org.rogach.scallop._
 
 
 
-class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
+class Conf_4(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
     mainOptions = Seq(input, output, threshold,reducers)
     val input = opt[String](descr = "input path", required = true)
     val output = opt[String](descr = "output path", required = true)
@@ -39,7 +39,7 @@ class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
     val log = Logger.getLogger(getClass().getName())
 
     def main(argv: Array[String]) {
-    val args = new Conf(argv)
+    val args = new Conf_4(argv)
 
     log.info("Input: " + args.input())
     log.info("Output: " + args.output())
@@ -87,9 +87,10 @@ class Conf(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
     .map(pair => (pair._2._1._1,((pair._1,pair._2._1._2),pair._2._2)))
     .join(countWord)
     .map(pair=>((pair._2._1._1._1,(((pair._1),(scala.math.log10(((pair._2._1._1._2).toDouble*(pair._2._1._2._2).toDouble)/((pair._2._1._2._1).toDouble*(pair._2._2._1).toDouble)),pair._2._1._1._2))))))
+	.map(a => ((a._1),((a._2._1)+" = "+(a._2._2)).toString))
     .groupByKey()
     countPair.saveAsTextFile(args.output())
- //   .map{ something => a._1={a._2._1 = a._2._2} }.saveAsTextFile(args.output())
+ 
+//   .map{ something => a._1={a._2._1 = a._2._2} }.saveAsTextFile(args.output())
     }
 }
-

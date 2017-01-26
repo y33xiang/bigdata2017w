@@ -59,6 +59,18 @@ if (tokens.length > 1) tokens.sliding(2).map(p => p.mkString(" ")).toList else L
 .reduceByKey(_ + _)
 
 
+val star = textFile
+.flatMap(line => {
+val tokens = tokenize(line)
+if (tokens.length > 1) tokens.sliding(2).map(p => p.mkString(" ")).toList else List()
+})
+.map(word => ((word.split(" ")(0)).toString+",*"))
+.map(word =>(word,1))
+.reduceByKey(_ + _)
+//.map(word =>(word._1.split(",")(0),(word._1.split(",")(1),word._2)))
+.map(word =>((word._1.split(",")(0),word._1.split(",")(1)),(word._2).toDouble))
+
+
 val countPair = textFile
 .flatMap(line => {
 val tokens = tokenize(line)
@@ -67,7 +79,6 @@ if (tokens.length > 1) tokens.sliding(2).map(p => p.mkString(" ")).toList else L
 .map(bigram => (bigram, 1))
 .reduceByKey(_ + _)
 .map(a => (a._1.split(" ")(0),(a._1.split(" ")(1),a._2)))
-
 //     countPair.leftOuterJoin(countWord)
 /*        for(i<- 0 to countPair.count()-1){
  countPair._i.get().
@@ -75,22 +86,12 @@ if (tokens.length > 1) tokens.sliding(2).map(p => p.mkString(" ")).toList else L
 val Frequency = countPair.join(countWord)
 //   Frequency.map(a => ((a._1,((a._2)._1)._1),((((a._2)._1)._2)/(a._2)._2)))
 .map(a => ((a._1,a._2._1._1),((a._2._1._2).toDouble/(a._2._2).toDouble)))
+.union(star)
 
 .map(pair => (pair._1+" "+pair._2).toString)
 Frequency.saveAsTextFile(args.output())
 
 }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 

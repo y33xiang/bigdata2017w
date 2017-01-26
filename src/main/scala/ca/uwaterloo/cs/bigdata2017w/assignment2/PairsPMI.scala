@@ -57,7 +57,7 @@ mainOptions = Seq(input, output, reducers)
 
     val lines = textFile.count()
     val countWord = textFile
-    .flatMap(line => tokenize(line).take(40).distinct)
+    .flatMap(line => tokenize(line).distinct)
     .map(word => (word, 1))
     .reduceByKey(_ + _)
     .map(word2 => (word2,lines))
@@ -72,7 +72,7 @@ mainOptions = Seq(input, output, reducers)
  tokens.map(y=>{if(x!=y) (x,y) else None})).filter(_!=None) else List()
  }}})*/
 
-    if (tokens.length > 1) tokens.take(40).flatMap(x =>
+    if (tokens.length > 1) tokens.flatMap(x =>
 
         tokens.map((x, _))).distinct else List()
 
@@ -86,10 +86,11 @@ mainOptions = Seq(input, output, reducers)
     .join(countWord)
     .map(pair => (pair._2._1._1,((pair._1,pair._2._1._2),pair._2._2)))
     .join(countWord)
-    .map(pair=>((pair._2._1._1._1,pair._1),(scala.math.log10(((pair._2._1._1._2).toDouble*(pair._2._1._2._2).toDouble)/((pair._2._1._2._1).toDouble*(pair._2._2._1).toDouble)))))
-
+    .map(pair=>((pair._2._1._1._1,pair._1),((scala.math.log10(((pair._2._1._1._2).toDouble*(pair._2._1._2._2).toDouble)/((pair._2._1._2._1).toDouble*(pair._2._2._1).toDouble)),pair._2._1._1._2))))
+   .sortByKey(true)
     .map(pair =>( pair._1+" "+pair._2).toString)
 //	saveAsTextFile(args.output())
+     
      countPair.saveAsTextFile(args.output())
 
     }

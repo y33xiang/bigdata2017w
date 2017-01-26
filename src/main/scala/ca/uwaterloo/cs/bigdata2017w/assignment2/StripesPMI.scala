@@ -87,8 +87,10 @@ class Conf_4(args: Seq[String]) extends ScallopConf(args) with Tokenizer {
     .map(pair => (pair._2._1._1,((pair._1,pair._2._1._2),pair._2._2)))
     .join(countWord)
     .map(pair=>((pair._2._1._1._1,(((pair._1),(scala.math.log10(((pair._2._1._1._2).toDouble*(pair._2._1._2._2).toDouble)/((pair._2._1._2._1).toDouble*(pair._2._2._1).toDouble)),pair._2._1._1._2))))))
-	.map(a => ((a._1),((a._2._1)+" = "+(a._2._2)).toString))
+    .map(a => (a._1,((a._2._1)+"="+(a._2._2))))
     .groupByKey()
+    .map(p=> (p._1,p._2.toList.mkString(", ")))
+    .map(p => p._1 + "\t" + "{" + p._2 + "}")
     countPair.saveAsTextFile(args.output())
  
 //   .map{ something => a._1={a._2._1 = a._2._2} }.saveAsTextFile(args.output())

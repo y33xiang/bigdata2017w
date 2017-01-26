@@ -72,11 +72,12 @@ if (tokens.length > 1) tokens.sliding(2).map(p => p.mkString(" ")).toList else L
 .map(a => (a._1.split(" ")(0),(a._1.split(" ")(1),a._2)))
 .join(countWord)
 .map(a => (a._1,(a._2._1._1,(((a._2._1._2).toDouble/(a._2._2).toDouble)))))
-
-.map(a => ((a._1),((a._2._1)+"="+(a._2._2)).toString))
+.map(a => ((a._1),((a._2._1)+"="+(a._2._2))))
+//.map(a => ((a._1),((a._2._1)+"="+(a._2._2)).toString))
 .groupByKey()
 
-
+.map(p => (p._1, p._2.toList.mkString(", ")))
+.map(p => p._1 + "\t" + "{" + p._2 + "}")
 
 countPair.saveAsTextFile(args.output())
 

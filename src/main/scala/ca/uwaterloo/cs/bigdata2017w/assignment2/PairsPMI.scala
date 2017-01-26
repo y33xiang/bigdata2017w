@@ -87,7 +87,7 @@ mainOptions = Seq(input, output, reducers)
     .map(pair => (pair._2._1._1,((pair._1,pair._2._1._2),pair._2._2)))
     .join(countWord)
     .map(pair=>((pair._2._1._1._1,pair._1),((scala.math.log10(((pair._2._1._1._2).toDouble*(pair._2._1._2._2).toDouble)/((pair._2._1._2._1).toDouble*(pair._2._2._1).toDouble)),pair._2._1._1._2))))
-   .sortByKey(true)
+//   .sortByKey(true)
     .map(pair =>( pair._1+" "+pair._2).toString)
 //	saveAsTextFile(args.output())
      

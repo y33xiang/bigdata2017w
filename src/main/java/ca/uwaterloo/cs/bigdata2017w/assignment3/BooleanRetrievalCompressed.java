@@ -16,34 +16,26 @@
 
 package ca.uwaterloo.cs.bigdata2017w.assignment3;
 
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.io.BytesWritable;
-import java.io.ByteArrayOutputStream;
-import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.MapFile;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.ParserProperties;
-import java.io.ByteArrayInputStream;
 import tl.lin.data.array.ArrayListWritable;
 import tl.lin.data.pair.PairOfInts;
-import tl.lin.data.pair.PairOfWritables;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.DataOutputStream;
-import java.io.DataInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
@@ -137,29 +129,29 @@ public class BooleanRetrievalCompressed extends Configured implements Tool {
         //index.get(key, value);
         
         FileStatus[] fileStatus = fs.listStatus(new Path(indexPath + "/"));
-        for(FileStatus status : fileStatus){
+        for(FileStatus status : fileStatus) {
             String pathStr = status.getPath().toString();
-            if(pathStr.contains("_SUCCESS")) continue;
+            if (pathStr.contains("_SUCCESS")) continue;
             Path filePath = new Path(pathStr);
             index = new MapFile.Reader(filePath, fs.getConf());
-            
+
             key.set(term);
-            index.get(key,value);
-            if(value.getLength() == 0) continue;
-            
+            index.get(key, value);
+            if (value.getLength() == 0) continue;
+
             ByteArrayInputStream byteArrayStream = new ByteArrayInputStream(value.getBytes());
             DataInputStream inStream = new DataInputStream(byteArrayStream);
-            
+
             int df = WritableUtils.readVInt(inStream);
             int delta = 0;
             int tf;
-            
-            for(int i=0;i<df;i++){
+
+            for (int i = 0; i < df; i++) {
                 delta += WritableUtils.readVInt(inStream);
                 tf = WritableUtils.readVInt(inStream);
-                result.add(new PairOfInts(delta,tf));
+                result.add(new PairOfInts(delta, tf));
             }
-            
+
             byteArrayStream.reset();
             inStream.close();
             break;

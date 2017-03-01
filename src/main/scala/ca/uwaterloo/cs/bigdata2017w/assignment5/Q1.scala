@@ -1,5 +1,4 @@
-/**
-  * Bespin: reference implementations of "big data" algorithms
+pin: reference implementations of "big data" algorithms
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
@@ -78,7 +77,7 @@ object Q1 {
     }else if(args.parquet()){
       val sparkSession = SparkSession.builder.getOrCreate
 
-      val lineitemDF = sparkSession.read.parquet("TPC-H-0.1-PARQUET/lineitem")
+      val lineitemDF = sparkSession.read.parquet(args.input()+"/lineitem")
       val textFile = lineitemDF.rdd
       val count = textFile.filter(line =>{
          line.get(10).equals(inputDate)

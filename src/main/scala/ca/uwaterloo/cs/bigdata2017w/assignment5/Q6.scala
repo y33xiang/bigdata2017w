@@ -89,7 +89,7 @@ object Q6 {
       val inputDate = args.date()
       //  val queryDate = inputDate.split("-")
 
-      val lineitemRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/lineitem")
+      val lineitemRDD = sparkSession.read.parquet(args.input()+"/lineitem")
 
       val lineitem = lineitemRDD.rdd
 

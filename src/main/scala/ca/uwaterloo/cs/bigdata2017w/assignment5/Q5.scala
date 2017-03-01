@@ -138,10 +138,10 @@ object Q5 {
       val sparkSession = SparkSession.builder.getOrCreate
 
 
-      val lineitemRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/lineitem")
-      val ordersRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/orders")
-      val customerRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/customer")
-      val nationRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/nation")
+      val lineitemRDD = sparkSession.read.parquet(args.input()+"/lineitem")
+      val ordersRDD = sparkSession.read.parquet(args.input()+"/orders")
+      val customerRDD = sparkSession.read.parquet(args.input()+"/customer")
+      val nationRDD = sparkSession.read.parquet(args.input()+"/nation")
 
 
       val nationrdd = nationRDD.rdd
@@ -180,12 +180,12 @@ object Q5 {
         .filter(p => p._2._2.iterator.hasNext && p._2._1.iterator.hasNext)
         .flatMap(p => {
           val name = p._2._1.toString()
-          p._2._2.map(date => ((name, date), 1))
+          p._2._2.map(date => ((name.toString, date), 1))
         })
         .reduceByKey(_ + _)
         .sortByKey()
         .collect()
-        .foreach(p => println("(" + p._1._1.toString.toList.mkString + "," + p._1._2 + "," + p._2 + ")"))
+        .foreach(p => println("(" + p._1._1.mkString + "," + p._1._2 + "," + p._2 + ")"))
 
     }
 

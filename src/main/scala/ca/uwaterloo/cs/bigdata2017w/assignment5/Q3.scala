@@ -91,9 +91,9 @@ object Q3 {
     }else if(args.parquet()){
       val sparkSession = SparkSession.builder.getOrCreate
 
-      val lineitemRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/lineitem")
-      val partRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/part")
-      val supplierRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/supplier")
+      val lineitemRDD = sparkSession.read.parquet(args.input()+"/lineitem")
+      val partRDD = sparkSession.read.parquet(args.input()+"/part")
+      val supplierRDD = sparkSession.read.parquet(args.input()+"/supplier")
 
 
       val partrdd = partRDD.rdd

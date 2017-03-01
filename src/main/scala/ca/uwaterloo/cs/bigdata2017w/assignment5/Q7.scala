@@ -106,9 +106,9 @@ object Q7 {
     }else if(args.parquet()){
       val sparkSession = SparkSession.builder.getOrCreate
 
-      val lineitemRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/lineitem")
-      val ordersRDD =sparkSession.read.parquet("TPC-H-0.1-PARQUET/orders")
-      val customerRDD =sparkSession.read.parquet("TPC-H-0.1-PARQUET/customer")
+      val lineitemRDD = sparkSession.read.parquet(args.input()+"/lineitem")
+      val ordersRDD =sparkSession.read.parquet(args.input()+"/orders")
+      val customerRDD =sparkSession.read.parquet(args.input()+"/customer")
       val inputDate = args.date()
       //  val queryDate = inputDate.split("-")
 

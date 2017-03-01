@@ -99,8 +99,8 @@ object Q2 {
       //  val lineitemRDD = sc.textFile(args.input()+"/lineitem.tbl")
       //  val ordersRDD = sc.textFile(args.input()+"/orders.tbl")
 
-      val lineitemRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/lineitem")
-      val ordersRDD = sparkSession.read.parquet("TPC-H-0.1-PARQUET/orders")
+      val lineitemRDD = sparkSession.read.parquet(args.input()+"/lineitem")
+      val ordersRDD = sparkSession.read.parquet(args.input()+"/orders")
 
       val lineitemrdd = lineitemRDD.rdd
         .filter(line => {

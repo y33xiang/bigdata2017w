@@ -1,169 +1,137 @@
-/**
-  * Bespin: reference implementations of "big data" algorithms
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  * http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
-
 package ca.uwaterloo.cs.bigdata2017w.assignment5
 
-
 import org.apache.log4j._
-import org.apache.hadoop.fs._
-import org.apache.spark._
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.rogach.scallop._
 import org.apache.spark.sql.SparkSession
 
-
-class Conf_4(args: Seq[String]) extends ScallopConf(args){
+class Conf4(args: Seq[String]) extends ScallopConf(args) {
   mainOptions = Seq(input, date)
   val input = opt[String](descr = "input path", required = true)
-  val date = opt[String](descr = "shipdate", required = true)
+  val date = opt[String](descr = "query date", required = true)
   val text = opt[Boolean]()
   val parquet = opt[Boolean]()
   verify()
 }
 
-object Q4 {
+object Q4 extends {
   val log = Logger.getLogger(getClass().getName())
 
   def main(argv: Array[String]) {
-    val args = new Conf_4(argv)
+    val args = new Conf4(argv)
 
     log.info("Input: " + args.input())
-    log.info("Shipdate: " + args.date())
-    //   log.info("File type: " + args.text())
+    log.info("Date: " + args.date())
+    log.info("Text: " + args.text())
+    log.info("Parquet: " + args.parquet())
 
-    val conf = new SparkConf().setAppName("Shipdate Query")
+    val date = args.date()
+
+    val conf = new SparkConf().setAppName("Q4")
     val sc = new SparkContext(conf)
 
-    val inputDate = args.date()
-
-    if(args.text()) {
+    if (args.text()) {
       val lineitemRDD = sc.textFile(args.input() + "/lineitem.tbl")
       val ordersRDD = sc.textFile(args.input() + "/orders.tbl")
       val customerRDD = sc.textFile(args.input() + "/customer.tbl")
       val nationRDD = sc.textFile(args.input() + "/nation.tbl")
 
-
-      val nationrdd = nationRDD
-        .map(line => {
-          val tokens = line.split("\\|")
-          (tokens(0), tokens(1))
-        })
-        .collectAsMap()
-      val nationrddHashmap = sc.broadcast(nationrdd)
-
-
-      val customerrdd = customerRDD
+      val buildCustomerRDDHashmap = customerRDD
         .map(line => {
           val tokens = line.split("\\|")
           (tokens(0), tokens(3))
         })
         .collectAsMap()
-      val customerrddHashmap = sc.broadcast(customerrdd)
-      // customerrdd.map(p => (p._2,(p._1,nationrddHashmap.value(p._1))))
+      val customerRDDHashmap = sc.broadcast(buildCustomerRDDHashmap)
 
-
-      val lineitem = lineitemRDD
-        .filter(line => {
-          val tokens = line.split("\\|")
-          tokens(10).contains(inputDate)
-        })
-        .map(a => {
-          val tokens = a.split("\\|")
-          (tokens(0), "*")
-        })
-
-
-      val ordersrdd = ordersRDD
+      val buildNationRDDHashmap = nationRDD
         .map(line => {
           val tokens = line.split("\\|")
           (tokens(0), tokens(1))
         })
-        .cogroup(lineitem)
-        .filter(p => p._2._2.iterator.hasNext)
-        .map(p => (p._1, p._2._1.iterator.next()))
-        .map(p => (customerrddHashmap.value(p._2), 1))
-        .reduceByKey(_ + _)
-        .map(p => (p._1.toInt, (nationrddHashmap.value(p._1), p._2)))
-        .sortByKey()
-        .collect()
-        .foreach(p => println("(" + p._1 + "," + p._2._1 + "," + p._2._2 + ")"))
-
-
-    }else if(args.parquet()){
-      val sparkSession = SparkSession.builder.getOrCreate
-
-      val lineitemRDD = sparkSession.read.parquet(args.input()+"lineitem")
-      val ordersRDD = sparkSession.read.parquet(args.input()+"/orders")
-      val customerRDD = sparkSession.read.parquet(args.input()+"/customer")
-      val nationRDD = sparkSession.read.parquet(args.input()+"/nation")
-
-
-      val nationrdd = nationRDD.rdd
-        .map(line => {
-          (line(0), line(1))
-        })
         .collectAsMap()
-      val nationrddHashmap = sc.broadcast(nationrdd)
+      val nationRDDHashmap = sc.broadcast(buildNationRDDHashmap)
 
-
-      val customerrdd = customerRDD.rdd
-        .map(line => {
-          (line(0), line(3))
-        })
-        .collectAsMap()
-      val customerrddHashmap = sc.broadcast(customerrdd)
-      // customerrdd.map(p => (p._2,(p._1,nationrddHashmap.value(p._1))))
-
-
-      val lineitem = lineitemRDD.rdd
+      val filteredLineitem = lineitemRDD
         .filter(line => {
-          line(10).toString.contains(inputDate)
+          val tokens = line.split("\\|")
+          tokens(10).contains(date)
         })
-        .map(a => {
-          (a(0), "*")
-        })
-
-
-      val ordersrdd = ordersRDD.rdd
         .map(line => {
-          (line(0), line(1))
+          val tokens = line.split("\\|")
+          (tokens(0), "a")
         })
-        .cogroup(lineitem)
-        .filter(p => p._2._2.iterator.hasNext)
-        .map(p => (p._1, p._2._1.iterator.next()))
-        .map(p => (customerrddHashmap.value(p._2), 1))
-        .reduceByKey(_ + _)
-        .map(p => (p._1.toString.toInt, (nationrddHashmap.value(p._1), p._2)))
+
+      val processedOrders = ordersRDD
+        .map(line => {
+          val tokens = line.split("\\|")
+          (tokens(0), tokens(1))
+        })
+
+      processedOrders.cogroup(filteredLineitem)
+        .filter(pair => pair._2._2.iterator.hasNext)
+        .map(pair => {
+          var i = 0
+          var pairIterator = pair._2._2.iterator
+          while (pairIterator.hasNext) {
+            var any = pairIterator.next()
+            i += 1
+          }
+          (pair._1, pair._2._1.iterator.next(), i)
+        })
+        .map(pair => (customerRDDHashmap.value(pair._2), pair._3))
+        .reduceByKey(_+_)
+        .map(pair => (pair._1.toInt, (nationRDDHashmap.value(pair._1), pair._2)))
         .sortByKey()
         .collect()
-        .foreach(p => println("(" + p._1 + "," + p._2._1 + "," + p._2._2 + ")"))
+        .foreach(pair => println("(" + pair._1+ "," + pair._2._1 + "," + pair._2._2 + ")"))
+    } else {
+      val sparkSession = SparkSession.builder.getOrCreate
+      val lineitemDF = sparkSession.read.parquet(args.input() + "/lineitem")
+      val lineitemRDD = lineitemDF.rdd
+      val ordersDF = sparkSession.read.parquet(args.input() + "/orders")
+      val ordersRDD = ordersDF.rdd
+      val customerDF = sparkSession.read.parquet(args.input() + "/customer")
+      val customerRDD = customerDF.rdd
+      val nationDF = sparkSession.read.parquet(args.input() + "/nation")
+      val nationRDD = nationDF.rdd
 
+      val buildCustomerRDDHashmap = customerRDD
+        .map(line => (line(0), line(3)))
+        .collectAsMap()
+      val customerRDDHashmap = sc.broadcast(buildCustomerRDDHashmap)
+
+      val buildNationRDDHashmap = nationRDD
+        .map(line => (line(0), line(1)))
+        .collectAsMap()
+      val nationRDDHashmap = sc.broadcast(buildNationRDDHashmap)
+
+      val filteredLineitem = lineitemRDD
+        .filter(line => line(10).toString.contains(date))
+        .map(line => (line(0), "a"))
+
+      val processedOrders = ordersRDD
+        .map(line => (line(0), line(1)))
+
+      processedOrders.cogroup(filteredLineitem)
+        .filter(pair => pair._2._2.iterator.hasNext)
+        .map(pair => {
+          var i = 0
+          var pairIterator = pair._2._2.iterator
+          while (pairIterator.hasNext) {
+            var any = pairIterator.next()
+            i += 1
+          }
+          (pair._1, pair._2._1.iterator.next(), i)
+        })
+        .map(pair => (customerRDDHashmap.value(pair._2), pair._3))
+        .reduceByKey(_+_)
+        .map(pair => (pair._1.toString.toInt, (nationRDDHashmap.value(pair._1).toString, pair._2)))
+        .sortByKey()
+        .collect()
+        .foreach(pair => println("(" + pair._1+ "," + pair._2._1 + "," + pair._2._2 + ")"))
     }
-
-
-
-
-
-
   }
 }
-
-
-
-
-
 

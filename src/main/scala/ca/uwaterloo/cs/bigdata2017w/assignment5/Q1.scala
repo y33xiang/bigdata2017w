@@ -47,19 +47,22 @@ object Q1 {
    // FileSystem.get(sc.hadoopConfiguration)
 
 
-    val lineitem = args.input()+"/lineitem.tbl"
+
     val inputDate = args.date()
   //  val queryDate = inputDate.split("-")
 
+
     if(args.text()) {
+      val lineitem = args.input()+"/lineitem.tbl"
       val textFile = sc.textFile(lineitem)
       val count = textFile.filter(line => {
         val tokens = line.split("\\|")
         tokens(10).contains(inputDate)
       })
-        .map(line => ("line", 1))
-        .reduceByKey(_ + _)
-        .foreach(answer => println("ANSWER=" + answer._2))
+        .map(p =>p(10))
+        val num = count.count()
+        println("ANSWER=" + num)
+
       /*   val count = textFile.map(line =>{
 
       val lineAttr = line.split("\\|")
@@ -83,9 +86,12 @@ object Q1 {
       val count = textFile.filter(line =>{
          line.get(10).equals(inputDate)
       })
-        .map(line => ("line", 1))
+        .map(p =>p(10))
+        val num = count.count()
+        println("ANSWER=" + num)
+       /* .map(line => ("line", 1))
         .reduceByKey(_ + _)
-        .foreach(answer => println("ANSWER=" + answer._2))
+        .foreach(answer => println("ANSWER=" + answer._2))*/
     }
   }
 }

@@ -60,7 +60,7 @@ object Q6 {
           val tokens = p.split("\\|")
           val l_returnflag = tokens(8)
           val l_linestatus = tokens(9)
-          val l_quantity = tokens(4).toLong
+          val l_quantity = tokens(4).toDouble
           val l_extendedprice = tokens(5).toDouble
           val l_discount = tokens(6).toDouble
           val l_tax = tokens(7).toDouble

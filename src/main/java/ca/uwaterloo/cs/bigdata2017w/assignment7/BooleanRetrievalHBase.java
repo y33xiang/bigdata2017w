@@ -28,13 +28,13 @@ import java.util.NavigableMap;
 import java.util.Iterator;
 
 public class BooleanRetrievalHBase extends Configured implements Tool {
-    private Stack<Set<Integer>> stack;
+    public Stack<Set<Integer>> stack;
     Table tableIndex;
     Table tableCollection;
 
-    private BooleanRetrievalHBase() {}
-
-    private void initialize(Configuration conf, String index, String collection) throws IOException {
+    //private BooleanRetrievalHBase() {}
+    protected BooleanRetrievalHBase() {}
+    protected void initialize(Configuration conf, String index, String collection) throws IOException {
         Configuration hbaseConfig = HBaseConfiguration.create(conf);
         Connection connection = ConnectionFactory.createConnection(hbaseConfig);
         tableIndex = connection.getTable(TableName.valueOf(index));
@@ -43,7 +43,7 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         stack = new Stack<>();
     }
 
-    private void runQuery(String q) throws IOException {
+    protected void runQuery(String q) throws IOException {
         String[] terms = q.split("\\s+");
 
         for (String t : terms) {
@@ -53,6 +53,7 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
                 performOR();
             } else {
                 pushTerm(t);
+                //word,docno,docno,docno......
             }
         }
 
@@ -61,14 +62,15 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         for (Integer i : set) {
             String line = fetchLine(i);
             System.out.println(i + "\t" + line);
+            //print the docno and sentence retrieved
         }
     }
 
-    private void pushTerm(String term) throws IOException {
+    protected void pushTerm(String term) throws IOException {
         stack.push(fetchDocumentSet(term));
     }
 
-    private void performAND() {
+    protected void performAND() {
         Set<Integer> s1 = stack.pop();
         Set<Integer> s2 = stack.pop();
 
@@ -83,7 +85,7 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         stack.push(sn);
     }
 
-    private void performOR() {
+    protected void performOR() {
         Set<Integer> s1 = stack.pop();
         Set<Integer> s2 = stack.pop();
 
@@ -100,7 +102,8 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         stack.push(sn);
     }
 
-    private Set<Integer> fetchDocumentSet(String term) throws IOException {
+    protected Set<Integer> fetchDocumentSet(String term) throws IOException {
+        //second fetch: get list of docno
         Set<Integer> set = new TreeSet<>();
         NavigableSet<byte[]> docnoes = fetchPostings(term);
         Iterator<byte[]> docnoIterator = docnoes.iterator();
@@ -113,7 +116,8 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         return set;
     }
 
-    private NavigableSet<byte[]> fetchPostings(String term) throws IOException {
+    protected NavigableSet<byte[]> fetchPostings(String term) throws IOException {
+        //first fetch: get list of (docno,tf)
         Get get = new Get(Bytes.toBytes(term));
         Result result = tableIndex.get(get);
         NavigableMap<byte[],byte[]> map = result.getFamilyMap(BuildInvertedIndexHBase.CF);
@@ -122,7 +126,8 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         return set;
     }
 
-    public String fetchLine(long offset) throws IOException {
+    protected String fetchLine(long offset) throws IOException {
+        //fetch from the collection(document),then give the sentence
         Get get = new Get(Bytes.toBytes(Long.toString(offset)));
         Result result = tableCollection.get(get);
         String d = Bytes.toString(result.getValue(InsertCollectionHBase.CF, InsertCollectionHBase.CONTENT));
@@ -130,7 +135,7 @@ public class BooleanRetrievalHBase extends Configured implements Tool {
         return d.length() > 80 ? d.substring(0, 80) + "..." : d;
     }
 
-    private static final class Args {
+    protected static final class Args {
         @Option(name = "-config", metaVar = "[path]", required = true, usage = "HBase config")
         public String config;
 

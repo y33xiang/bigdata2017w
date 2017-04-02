@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.*;
 
 //import org.json.simple.JSONArray;
 
@@ -27,7 +28,7 @@ import java.util.Set;
 public class HBaseSearchEndpoint extends BooleanRetrievalHBase {
   //  private Stack<Set<Integer>> stack;
 
-    private Map<Integer,String> query(String q) throws Exception{
+    private Map<Integer,String> searchQuery(String q) throws IOException{
         Map<Integer, String> map = new LinkedHashMap<>();
 
 
@@ -74,19 +75,17 @@ public class HBaseSearchEndpoint extends BooleanRetrievalHBase {
 
             JSONArray list = new JSONArray();
 
-            try {
-                Map<Integer,String> result = query(baseRequest.getParameter("query"));
-                for (Map.Entry<Integer, String> entry: result.entrySet()){
-                    JSONObject obj = new JSONObject();
-                    Integer docid = entry.getKey();
-                    String text = entry.getValue();
-                    obj.put("docid", docid);
-                    obj.put("text", text);
-                    list.add(obj);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+
+            Map<Integer,String> result = searchQuery(baseRequest.getParameter("query"));
+            for (Map.Entry<Integer, String> entry : result.entrySet()){
+                JSONObject obj = new JSONObject();
+                Integer docid = entry.getKey();
+                String text = entry.getValue();
+                obj.put("docid", docid);
+                obj.put("text", text);
+                list.add(obj);
             }
+
 
             response.getWriter().println(list);
 
@@ -111,14 +110,14 @@ public class HBaseSearchEndpoint extends BooleanRetrievalHBase {
         String collection;
 
         @Option(name = "-port", metaVar = "[term]", required = true, usage = "port")
-        String port;
+        int port;
     }
 
 
     public int run(String[] argv) throws Exception {
-        final Args args_1 = new Args();
+        final Args args = new Args();
        // CmdLineParser parser = new CmdLineParser(args_1, ParserProperties.defaults().withUsageWidth(100));
-        CmdLineParser parser = new CmdLineParser(args_1, ParserProperties.defaults().withUsageWidth(100));
+        CmdLineParser parser = new CmdLineParser(args, ParserProperties.defaults().withUsageWidth(100));
 
         try {
             parser.parseArgument(argv);
@@ -129,11 +128,11 @@ public class HBaseSearchEndpoint extends BooleanRetrievalHBase {
         }
 
         Configuration conf = getConf();
-        conf.addResource(new Path(args_1.config));
+        conf.addResource(new Path(args.config));
 
-        initialize(conf, args_1.index, args_1.collection);
+        initialize(conf, args.index, args.collection);
 
-        Server server = new Server(Integer.parseInt(args_1.port));
+        Server server = new Server(args.port);
         server.setHandler(new Handler_1());
 
         server.start();

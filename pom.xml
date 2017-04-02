@@ -58,6 +58,11 @@ Assignments for CS 489/698 Big Data Infrastructure (Winter 2017)
 <scalaVersion>${scala.version}</scalaVersion>
 </configuration>
 </plugin>
+    <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.4.3.v20170317</version>
+    </plugin>
 <plugin>
 <groupId>org.apache.maven.plugins</groupId>
 <artifactId>maven-shade-plugin</artifactId>
@@ -155,10 +160,22 @@ Assignments for CS 489/698 Big Data Infrastructure (Winter 2017)
 <artifactId>spark-core_2.11</artifactId>
 <version>${spark.version}</version>
 </dependency>
-<dependency>
+    <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-sql_2.11</artifactId>
         <version>${spark.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.4.3.v20170317</version>
+    </dependency>
+
+    <dependency>
+        <groupId>com.googlecode.json-simple</groupId>
+        <artifactId>json-simple</artifactId>
+        <version>1.1.1</version>
     </dependency>
 </dependencies>
 </project>
